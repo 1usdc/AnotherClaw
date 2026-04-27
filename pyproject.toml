@@ -1,0 +1,20 @@
+[project]
+name = "anotherme"
+version = "0.1.0"
+description = "根据用户对话自动选择合适的 Agent 执行，再调用技能；支持多 Agent，兼容 clawhub.io 开源技能。"
+readme = "readme/README_zh.md"
+# 3.14 下 langchain_core 仍使用 Pydantic v1，会报兼容性警告，暂用 3.10–3.13
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "langchain-core>=0.2.0",
+    "openai>=1.0.0",
+    "edge-tts>=6.1.0",
+    "requests>=2.28.0",
+    "fastapi>=0.115.0",
+    "python-dotenv>=1.0.0",
+    "uvicorn[standard]>=0.32.0",
+    "PyYAML>=6.0",
+    "python-minifier>=3.0",
+]
+
+# 仅用 uv 管理依赖与 venv，不发布包；运行入口为 main.py

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>
+    (function () {
+      try {
+        var PK = 'anotherme-palette'
+        var pal = localStorage.getItem(PK) || 'default'
+        if (pal !== 'default' && pal !== 'ocean') pal = 'default'
+        document.documentElement.setAttribute('data-theme', 'light')
+        document.documentElement.setAttribute('data-palette', pal)
+      } catch (e) { }
+    })()
+  </script>
+  <title>AnotherMe</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/images/logo.png" />
+  <script type="module" crossorigin src="/assets/index-DYckAs2I.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Bk7nmxTf.css">
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
