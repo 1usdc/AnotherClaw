@@ -280,7 +280,7 @@ def _persona_prompt_with_memories(persona_id:str|_A):
 	return D+_G+B.strip()
 def run_agent_loop(user_input:str,max_turns:int=12,history=_A,on_step=_A,on_text_delta=_A,on_thinking_delta=_A,persona_id:str|_A=_A,request_ui_schema:Optional[Callable[[dict],dict|_A]]=_A):
 	'\n    默认 Agent 入口：先判断用户输入是否需要使用技能；不需要则直接请求一次大模型回答，\n    需要则按用户意图做技能检索注入系统提示并执行工具循环。\n    persona_id 有值时，从 agents/prompts/{persona_id}.md 加载分身提示词，并注入 data/memory 下长期记忆，拼到 system 前。\n    ';P=persona_id;O=on_thinking_delta;N=on_text_delta;M=on_step;C=user_input;A=history
-	if not(os.getenv(_T)or os.getenv(_U)or'').strip():return'尚未配置 API 密钥。请在前端「设置」页保存 OPENAI_API_KEY（写入应用数据目录下的 SQLite 配置）。'
+	if not(os.getenv(_T)or os.getenv(_U)or'').strip():return'尚未配置 API 密钥。请在右上角「设置」页保存 OPENAI_API_KEY。'
 	D=_get_client();E=_get_model();H=_persona_prompt_with_memories(P);F=_A;I=_A
 	if A and len(A)>0:
 		if len(A)>KEEP_RECENT_MESSAGES:I=summarize_conversation(D,E,A[:-KEEP_RECENT_MESSAGES]);F=A[-KEEP_RECENT_MESSAGES:]
