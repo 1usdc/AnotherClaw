@@ -86,8 +86,8 @@ Environment=ANOTHERCLAW_NO_SUDO=1
 ExecStart=/usr/bin/env bash ${ROOT}/scripts/start-py.sh --py --backend
 Restart=always
 RestartSec=3
-StandardOutput=append:${ROOT}/claw-be-py/anotherclaw-systemd.log
-StandardError=append:${ROOT}/claw-be-py/anotherclaw-systemd.log
+# 不写 append 到 claw-be-py/：该目录在首次 pack 前可能不存在，会导致 209/STDOUT。
+# 默认由 journald 收集标准输出；查看：journalctl -u anotherclaw -f
 
 [Install]
 WantedBy=multi-user.target
