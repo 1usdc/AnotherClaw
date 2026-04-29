@@ -36,3 +36,15 @@ auto-close:
 # 查看 Linux systemd 开机自启动状态 (Show Linux systemd autostart status)
 auto-status:
     bash scripts/autostart-py.sh status
+
+# 在 Linux 上安装 nginx（apt/dnf/yum/apk）(Install nginx on Linux)
+nginx-install:
+    bash scripts/nginx.sh install
+
+# 配置 nginx：80 反代到本机 8765（可用 NGINX_UPSTREAM_PORT 覆盖）(nginx reverse proxy 80 -> 8765)
+nginx-set:
+    bash scripts/nginx.sh set
+
+# 重启 nginx (Restart nginx)
+nginx-restart:
+    bash scripts/nginx.sh restart
