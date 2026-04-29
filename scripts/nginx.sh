@@ -3,7 +3,6 @@
 # Usage:
 #   bash scripts/nginx.sh [setup]
 #   NGINX_UPSTREAM_PORT=8080 bash scripts/nginx.sh
-#   NGINX_SETUP_FORCE=1 bash scripts/nginx.sh   # 强制重写
 #   just nginx-setup
 
 set -euo pipefail
@@ -127,30 +126,6 @@ disable_default_site() {
   fi
 }
 
-nginx_conf_present() {
-  [ -f "/etc/nginx/sites-available/${CONF_NAME}" ] || [ -f "/etc/nginx/conf.d/${CONF_NAME}" ] || [ -f "/etc/nginx/http.d/${CONF_NAME}" ]
-}
-
-already_setup_complete() {
-  local UPSTREAM_PORT="$1"
-  [ -z "${NGINX_SETUP_FORCE:-}" ] || return 1
-  [ -f "$SETUP_MARKER" ] || return 1
-  local saved
-  saved="$(tr -d '\r\n' < "$SETUP_MARKER" 2>/dev/null || true)"
-  [ "$saved" = "$UPSTREAM_PORT" ] || return 1
-  nginx_conf_present || return 1
-  command -v nginx >/dev/null 2>&1 || return 1
-  if command -v systemctl >/dev/null 2>&1; then
-    ensure_root systemctl is-enabled nginx >/dev/null 2>&1 || return 1
-    ensure_root systemctl is-active nginx >/dev/null 2>&1 || return 1
-  elif command -v rc-service >/dev/null 2>&1; then
-    ensure_root rc-service nginx status >/dev/null 2>&1 || return 1
-  else
-    pgrep -x nginx >/dev/null 2>&1 || return 1
-  fi
-  return 0
-}
-
 enable_and_restart_nginx() {
   if command -v systemctl >/dev/null 2>&1; then
     ensure_root systemctl enable nginx 2>/dev/null || true
@@ -178,11 +153,6 @@ cmd_setup() {
 
   ensure_nginx_installed
 
-  if already_setup_complete "$UPSTREAM_PORT"; then
-    echo "nginx 反代已按端口 ${UPSTREAM_PORT} 配置完成（default.conf），服务已启用并在运行，跳过。"
-    exit 0
-  fi
-
   echo "=== 备份 default、写入 default.conf、校验并重启 ==="
   disable_default_site
   deploy_reverse_proxy_conf "$UPSTREAM_PORT"
@@ -190,13 +160,13 @@ cmd_setup() {
   printf '%s\n' "$UPSTREAM_PORT" | ensure_root tee "$SETUP_MARKER" >/dev/null
   enable_and_restart_nginx
   echo "反代: http://<服务器IP>/ -> http://127.0.0.1:${UPSTREAM_PORT}/"
-  echo "标记文件: ${SETUP_MARKER}（改端口可设 NGINX_UPSTREAM_PORT 或 NGINX_SETUP_FORCE=1 强制重写）"
+  echo "标记文件: ${SETUP_MARKER}（改端口可设 NGINX_UPSTREAM_PORT）"
 }
 
 usage() {
   echo "用法: bash scripts/nginx.sh [setup]"
-  echo "  省略参数时等价于 setup。一键：安装 nginx（若缺）、备份原 default、写入 default.conf（80 反代）、开机自启并重启。"
-  echo "  环境变量: NGINX_UPSTREAM_PORT（默认 8765） NGINX_SETUP_FORCE=1（强制重写）"
+  echo "  省略参数时等价于 setup。一键：安装 nginx（若缺）、备份原 default、写入 default.conf（80 反代）、开机自启并重启（默认每次重写）。"
+  echo "  环境变量: NGINX_UPSTREAM_PORT（默认 8765）"
 }
 
 ACTION="${1:-setup}"
