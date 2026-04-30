@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nginx 一键 setup：缺则装、备份并替换 default、写入 default.conf（80 反代）、enable+restart。
+# Nginx 一键 setup：缺则装、备份并替换 default、写入 default（80 反代）、enable+restart。
 # Usage:
 #   bash scripts/nginx.sh [setup]
 #   NGINX_UPSTREAM_PORT=8080 bash scripts/nginx.sh
@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-CONF_NAME="default.conf"
+CONF_NAME="default"
 SETUP_MARKER="/etc/nginx/.anotherclaw-nginx-setup"
 
 require_linux() {
@@ -68,7 +68,7 @@ write_reverse_proxy_to() {
   local target="$1"
   local UPSTREAM_PORT="$2"
   ensure_root tee "$target" >/dev/null <<EOF
-# AnotherClaw：HTTP 80 反代到本机 ${UPSTREAM_PORT}（由 scripts/nginx.sh 写入 default.conf）
+# AnotherClaw：HTTP 80 反代到本机 ${UPSTREAM_PORT}（由 scripts/nginx.sh 写入 default）
 server {
     listen 80;
     listen [::]:80;
@@ -110,7 +110,14 @@ deploy_reverse_proxy_conf() {
 
 disable_default_site() {
   # Debian/Ubuntu：旧默认站点名为 default（无扩展名）
+  if [ -f /etc/nginx/sites-available/default ]; then
+    ensure_root cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+    echo "已将原 /etc/nginx/sites-available/default 备份为 default.bak。"
+  fi
   if [ -L /etc/nginx/sites-enabled/default ]; then
+    # 对于符号链接，保留一份链接备份，便于回滚启用状态。
+    ensure_root cp -P /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/default.bak
+    echo "已将原 /etc/nginx/sites-enabled/default 链接备份为 default.bak。"
     ensure_root rm -f /etc/nginx/sites-enabled/default
     echo "已移除 /etc/nginx/sites-enabled/default（旧默认站点）。"
   fi
@@ -153,7 +160,7 @@ cmd_setup() {
 
   ensure_nginx_installed
 
-  echo "=== 备份 default、写入 default.conf、校验并重启 ==="
+  echo "=== 备份 default、写入 default、校验并重启 ==="
   disable_default_site
   deploy_reverse_proxy_conf "$UPSTREAM_PORT"
   ensure_root nginx -t
@@ -165,7 +172,7 @@ cmd_setup() {
 
 usage() {
   echo "用法: bash scripts/nginx.sh [setup]"
-  echo "  省略参数时等价于 setup。一键：安装 nginx（若缺）、备份原 default、写入 default.conf（80 反代）、开机自启并重启（默认每次重写）。"
+  echo "  省略参数时等价于 setup。一键：安装 nginx（若缺）、备份原 default、写入 default（80 反代）、开机自启并重启（默认每次重写）。"
   echo "  环境变量: NGINX_UPSTREAM_PORT（默认 8765）"
 }
 
